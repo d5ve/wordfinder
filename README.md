@@ -34,6 +34,7 @@ OK
 $ curl http://localhost:8080/wordfinder/dgo
 [ "do", "dog", "go", "god" ]
 ...
+```
 
 ## TODO
 
