@@ -42,7 +42,7 @@ $ curl http://localhost:8080/wordfinder/dgo
 - Better algorithms. Too many nested loops currently. Use benchmarking to compare different ideas.
 - Caching. Normalise the input letters and have a small round-robin memory cache.
 - Better error handling.
-- Filter out most single-letter matches - only [aio] are valid English.
+- Move the dictionary load before any fork()
 
 ## LICENSE
 

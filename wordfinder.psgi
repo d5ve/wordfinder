@@ -85,15 +85,16 @@ sub wordfinder {
 }
 
 # Read all the words from the dictionary file, filter to a-z, convert to
-# lowercase, and remove dups.
+# lowercase, remove dups and the erroneous single-letter words.
 sub load_words {
     open my $FH, "<", "/usr/share/dict/words" or die $!;
     @WORDS = <$FH>;
     close $FH or die $!;
     chomp @WORDS;
-    my %WORDS = map { lc $_ => 1 } @WORDS;
-
-    @WORDS = sort grep { m{ \A [a-z]+ \z }xms } keys %WORDS;
+    @WORDS = grep { m{ \A [a-z]+ \z }xms } @WORDS;      # Filter out words with non-a-z.
+    my %WORDS = map { lc $_ => 1 } @WORDS;              # Hashify to clobber dups.
+    delete @WORDS{("b" .. "h", "j" .. "n", "p" .."z")}; # Remove the erroneous single-letter words.
+    @WORDS = sort keys %WORDS;
 }
 
 # Must be the last command in file.
