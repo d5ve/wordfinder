@@ -44,6 +44,13 @@ any qr{.*}               => sub { status 404; return "Not Found"; };
 # Not all letters need to be used.
 # Letters can appear in the words, at most, as many times as they appear in the list.
 #
+# There is likely a simple method, that I slept through in university, for
+# speeding this all up. It seems like looping through the whole list each time
+# can't be necessary. I couldn't think of a tree structure that would be good
+# for this "any order is fine" search pattern. Prefixes don't help. In my
+# benchmarking, my laptop was looping through the words and running the regex
+# about 4 million words per second, so maybe this is good enough!
+#
 # Warning: Nested loops ahead! (BRRRRRRR)
 # wordfinder() currently makes one full pass through @WORDS, running a regex
 # match on any words short enough to be fully matched by the input.
