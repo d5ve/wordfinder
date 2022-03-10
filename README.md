@@ -1,4 +1,4 @@
-# WORDFINDER API
+# WORDFINDER API v0.3
 
 Simple perl/dancer2 JSON API to find words matching a pattern.
 
@@ -7,18 +7,20 @@ built from just those letters. The input letters can include repeats. Not all
 input letters need to be used. Each letter in the input list can appear at most
 once in the output words.
 
-## Run via docker
+[dockerhub: d5ve/wordfinder](https://hub.docker.com/r/d5ve/wordfinder)
+
+## Run from dockerhub
+
+```bash
+$ docker run -d -p 8080:80 d5ve/wordfinder
+```
+
+## Run with docker
 
 ```bash
 $ docker build -t wordfinder .
 ...
 $ docker run -d -p 8080:80 wordfinder
-...
-$ curl http://localhost:8080/ping
-OK
-
-$ curl http://localhost:8080/wordfinder/dgo
-[ "do", "dog", "go", "god" ]
 ```
 
 ## Run directly
@@ -27,13 +29,14 @@ $ curl http://localhost:8080/wordfinder/dgo
 $ cpanm Dancer2 JSON::XS
 ...
 $ plackup --port 8080 wordfinder.psgi
-...
+```
+## Test with curl
+```bash
 $ curl http://localhost:8080/ping
 OK
 
 $ curl http://localhost:8080/wordfinder/dgo
-[ "do", "dog", "go", "god" ]
-...
+[ "do", "dog", "go", "god", "o" ]
 ```
 
 ## TODO
