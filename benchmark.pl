@@ -10,23 +10,33 @@ my @WORDS = load_words();
 my $input = "eariotnslc"; # Most common ten letters in English.
 my $positive_pattern = qr{\A [\Q$input\E]+ \z}xms;
 my $negative_pattern = qr{ [^\Q$input\E] }xms;
+my %input = map {$_ => 1} split //, $input;
+my $inverse = join '', (grep { ! $input{$_} } ('a'..'z'));
+my $inverse_pattern = qr{ [\Q$inverse\E] }xms;
 
 cmpthese(
     -2,
     {
         POSITIVE => sub {
-            my @matches;
+            my $matches;
             foreach (@WORDS) {
-                push @matches, $_ if $_ =~ m{$positive_pattern};
+                $matches++ if $_ =~ m{$positive_pattern};
             }
-            # print 'P' . scalar @matches, "\n";
+            print "P$matches\n";
         },
         NEGATIVE => sub {
-            my @matches;
+            my $matches;
             foreach (@WORDS) {
-                push @matches, $_ unless $_ =~ m{$negative_pattern};
+                $matches ++ unless $_ =~ m{$negative_pattern};
             }
-            # print 'N' . scalar @matches, "\n";
+            print "N$matches\n";
+        },
+        INVERSE => sub {
+            my $matches;
+            foreach (@WORDS) {
+                $matches ++ unless $_ =~ m{$inverse_pattern};
+            }
+            print "I$matches\n";
         },
     }
 );
