@@ -26,16 +26,16 @@ same terms as perl itself.
 
 use Dancer2 appname => 'wordfinder';
 
-# HTML-free errors.
-sub simple_error {
-     my ($message, $code) = @_;
-     status $code || 404;
-     return $message;
- }
+our $VERSION = v0.2;
 
+# load_words() hits disk.
+my @WORDS = load_words();
+my $sane_input_length = 26; # ??
+
+# Routes
 get '/ping'              => sub { 'ok' };
 get '/wordfinder/:input' => sub { &wordfinder };
-any qr{.*}               => sub { simple_error("Not Found", 404) };
+any qr{.*}               => sub { status 404; return "Not Found"; };
 
 #
 # wordfinder() finds all words built from a list of letters.
@@ -44,15 +44,21 @@ any qr{.*}               => sub { simple_error("Not Found", 404) };
 # Not all letters need to be used.
 # Letters can appear in the words, at most, as many times as they appear in the list.
 #
-# Warning: Nested loops ahead!
-my @WORDS;
+# Warning: Nested loops ahead! (BRRRRRRR)
+# wordfinder() currently makes one full pass through @WORDS, running a regex
+# match on any words short enough to be fully matched by the input.
+# Then each match is looped through per character to check that it uses a
+# correct number of each character.
 sub wordfinder {
     my $input = lc route_parameters->get('input');
     $input =~ s{[^a-z]}{}gxms;    # Ignore anything outside of a-z. TODO: return error?
     my $input_len = length $input;
-    return simple_error( "Bad Request", 400 ) unless $input_len;
-    return simple_error( "Bad Request", 400 ) if $input_len > 26;
-    load_words() unless @WORDS;
+    if ( ! $input_len ) {
+        status 404; return "Bad Request";
+    }
+    if ( $input_len > $sane_input_length ) {
+        status 404; return "Bad Request";
+    }
 
     # Keep track of the how many times each letter appears in the input list.
     my %input_counts;
@@ -61,6 +67,8 @@ sub wordfinder {
     }
     
     my $pattern = qr{\A [\Q$input\E]+ \z}xms; # Could use keys %input_counts here I guess.
+    # TODO: Benchmark against [^$input], as that would have it bailing at the
+    # first failure, rather than needing to scan all the way to the end.
 
     my @matches;
     # This is a bottleneck.
@@ -69,7 +77,9 @@ sub wordfinder {
         next if length $_ > $input_len; # Fast and cheap.
         push @matches, $_ if $_ =~ m{$pattern};
     }
-    # Matches includes overmatching. ban => banana
+
+    # Matches is now words that contain only the distinct letters in the input,
+    # but not necessarily the correct number of each letter. banaaa => banana
     # Process the matches again to filter out those cases.
     # This is death by nested loops, but the sample set should hopefully be small enough.
     my @filtered_matches;
@@ -88,13 +98,17 @@ sub wordfinder {
 # lowercase, remove dups and the erroneous single-letter words.
 sub load_words {
     open my $FH, "<", "/usr/share/dict/words" or die $!;
-    @WORDS = <$FH>;
+    my @words = <$FH>;
     close $FH or die $!;
-    chomp @WORDS;
-    @WORDS = grep { m{ \A [a-z]+ \z }xms } @WORDS;      # Filter out words with non-a-z.
-    my %WORDS = map { lc $_ => 1 } @WORDS;              # Hashify to clobber dups.
-    delete @WORDS{("b" .. "h", "j" .. "n", "p" .."z")}; # Remove the erroneous single-letter words.
-    @WORDS = sort keys %WORDS;
+    chomp @words;
+    @words = grep { m{ \A [a-z]+ \z }xms } @words;      # Filter out words with non-a-z.
+    my %wordsmap = map { lc $_ => 1 } @words;              # Hashify to clobber dups.
+
+    # This is the only English-specific bit of code (barring the a-z criteria).
+    # Remove the erroneous single-letter words from hash.
+    delete @wordsmap{("b" .. "h", "j" .. "n", "p" .."z")};
+
+    return sort keys %wordsmap; # This gets the JSON responses sorted "for free".
 }
 
 # Must be the last command in file.
