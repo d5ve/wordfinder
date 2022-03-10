@@ -26,11 +26,11 @@ same terms as perl itself.
 
 use Dancer2 appname => 'wordfinder';
 
-our $VERSION = v0.2;
+our $VERSION = v0.3;
 
 # load_words() hits disk.
-my @WORDS = load_words();
-my $sane_input_length = 26; # ??
+my @WORDS             = load_words();
+my $sane_input_length = 26; # What is a sane maximum here ??
 
 # Routes
 get '/ping'              => sub { 'ok' };
@@ -53,29 +53,29 @@ sub wordfinder {
     my $input = lc route_parameters->get('input');
     $input =~ s{[^a-z]}{}gxms;    # Ignore anything outside of a-z. TODO: return error?
     my $input_len = length $input;
-    if ( ! $input_len ) {
-        status 404; return "Bad Request";
+    if ( !$input_len ) {
+        status 404;
+        return "Bad Request";
     }
     if ( $input_len > $sane_input_length ) {
-        status 404; return "Bad Request";
+        status 404;
+        return "Bad Request";
     }
 
     # Keep track of the how many times each letter appears in the input list.
     my %input_counts;
-    foreach ( split //, $input) {
-        $input_counts{$_} ++;
+    foreach ( split //, $input ) {
+        $input_counts{$_}++;
     }
-    
-    my $pattern = qr{\A [\Q$input\E]+ \z}xms; # Could use keys %input_counts here I guess.
-    # TODO: Benchmark against [^$input], as that would have it bailing at the
-    # first failure, rather than needing to scan all the way to the end.
 
+    # Bail at the first sign of any non-input char.
+    my $pattern = qr{ [^\Q$input\E] }xms; # Could use keys %input_counts here I guess.
     my @matches;
     # This is a bottleneck.
     # Maybe collapse the words into a space-separated string and make one regex pass through that??
     foreach (@WORDS) {
-        next if length $_ > $input_len; # Fast and cheap.
-        push @matches, $_ if $_ =~ m{$pattern};
+        next if length $_ > $input_len;    # Fast and cheap.
+        push @matches, $_ unless $_ =~ m{$pattern};
     }
 
     # Matches is now words that contain only the distinct letters in the input,
@@ -83,10 +83,10 @@ sub wordfinder {
     # Process the matches again to filter out those cases.
     # This is death by nested loops, but the sample set should hopefully be small enough.
     my @filtered_matches;
-    MATCH: foreach my $match ( @matches ) {
+    MATCH: foreach my $match (@matches) {
         my %match_counts;
-        foreach ( split //, $match) {
-            $match_counts{$_} ++;
+        foreach ( split //, $match ) {
+            $match_counts{$_}++;
             next MATCH if $match_counts{$_} > $input_counts{$_};
         }
         push @filtered_matches, $match;
@@ -101,14 +101,14 @@ sub load_words {
     my @words = <$FH>;
     close $FH or die $!;
     chomp @words;
-    @words = grep { m{ \A [a-z]+ \z }xms } @words;      # Filter out words with non-a-z.
-    my %wordsmap = map { lc $_ => 1 } @words;              # Hashify to clobber dups.
+    @words = grep { m{ \A [a-z]+ \z }xms } @words;    # Filter out words with non-a-z.
+    my %wordsmap = map { lc $_ => 1 } @words;         # Hashify to clobber dups.
 
     # This is the only English-specific bit of code (barring the a-z criteria).
     # Remove the erroneous single-letter words from hash.
-    delete @wordsmap{("b" .. "h", "j" .. "n", "p" .."z")};
+    delete @wordsmap{ ( "b" .. "h", "j" .. "n", "p" .. "z" ) };
 
-    return sort keys %wordsmap; # This gets the JSON responses sorted "for free".
+    return sort keys %wordsmap;    # This gets the JSON responses sorted "for free".
 }
 
 # Must be the last command in file.
