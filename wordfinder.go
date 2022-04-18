@@ -3,6 +3,7 @@ package main
 import (
 	"fmt"
 	"io/ioutil"
+	"net/http"
 	"os"
 	"regexp"
 	"sort"
@@ -15,8 +16,15 @@ func main() {
 	str := strings.Join(words, " ")
 	fmt.Println(str)
 
+	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
+		w.WriteHeader(http.StatusOK)
+	})
+	http.HandleFunc("/wordfinder/", wordfinder)
 }
 
+func wordfinder(w http.ResponseWriter, r *http.Request) {
+	letters := r.URL.Path[len("/wordfinder/"):]
+}
 func loadWords() []string {
 	bytes, err := ioutil.ReadFile("/usr/share/dict/words")
 	if err != nil {
