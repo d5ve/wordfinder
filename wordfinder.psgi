@@ -157,8 +157,8 @@ sub load_words {
     my @words = <$FH>;
     close $FH or die $!;
     chomp @words;
-    @words = grep { m{ \A [a-z]+ \z }ixms } @words;    # Filter out words with non-a-z.
-    my %wordsmap = map { lc $_ => 1 } @words;         # Hashify to clobber dups.
+    @words = grep { m{ \A [a-z]+ \z }xms } map { lc } @words;    # Filter out words with non-a-z.
+    my %wordsmap = map { $_ => 1 } @words;         # Hashify to clobber dups.
 
     # This is the only English-specific bit of code (barring the a-z criteria).
     # Remove the erroneous single-letter words from hash.
