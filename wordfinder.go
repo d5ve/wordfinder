@@ -56,7 +56,7 @@ func wordfinderHandler(dict string) http.HandlerFunc {
 	}
 }
 
-func FindWords(chars string, dict string) (words []string) {
+func FindWords(chars string, dict string) []string {
 
 	// Track the frequency of each char in the input.
 	freq := make(map[rune]int)
@@ -76,6 +76,7 @@ func FindWords(chars string, dict string) (words []string) {
 	var re = regexp.MustCompile(fmt.Sprintf(`\b([%s]{1,%d})\b`, chars, len(chars)))
 	matches := re.FindAllString(dict, -1)
 
+	words := make([]string, 0)
 	// Process each match further to check that the character frequency is
 	// no larger than that of the input.
 match:
