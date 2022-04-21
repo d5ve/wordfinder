@@ -1,6 +1,7 @@
 package main
 
 import (
+	"encoding/json"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -13,18 +14,40 @@ import (
 func main() {
 	words := loadWords()
 	//fmt.Println(words)
-	str := strings.Join(words, " ")
-	fmt.Println(str)
+	dict := strings.Join(words, " ")
+	// fmt.Println(dict)
 
 	http.HandleFunc("/ping", func(w http.ResponseWriter, r *http.Request) {
 		w.WriteHeader(http.StatusOK)
 	})
-	http.HandleFunc("/wordfinder/", wordfinder)
+	http.HandleFunc("/wordfinder/", wordfinderHandler(dict))
 }
 
-func wordfinder(w http.ResponseWriter, r *http.Request) {
-	letters := r.URL.Path[len("/wordfinder/"):]
+func wordfinderHandler(dict string) http.HandlerFunc {
+	return func(w http.ResponseWriter, r *http.Request) {
+		letters := r.URL.Path[len("/wordfinder/"):]
+
+		nonAlpha := regexp.MustCompile(`[^a-z]`)
+		letters = string(nonAlpha.ReplaceAll([]byte(letters), []byte("")))
+
+		words := findWords(letters, dict)
+		jwords, err := json.Marshal(words)
+		if err != nil {
+			fmt.Printf("Error: %s", err.Error())
+			w.WriteHeader(500)
+			return
+		}
+
+		w.Header().Set("Content-Type", "application/json")
+		w.Write(jwords)
+	}
 }
+
+func findWords(input string, dict string) (words []string) {
+	return words
+
+}
+
 func loadWords() []string {
 	bytes, err := ioutil.ReadFile("/usr/share/dict/words")
 	if err != nil {
