@@ -11,6 +11,8 @@ import (
 	"strings"
 )
 
+var saneInputLen = 26
+
 func main() {
 	words := loadWords()
 	//fmt.Println(words)
@@ -25,12 +27,23 @@ func main() {
 
 func wordfinderHandler(dict string) http.HandlerFunc {
 	return func(w http.ResponseWriter, r *http.Request) {
-		letters := r.URL.Path[len("/wordfinder/"):]
-
+		// Get a sane-length string of alpha characters.
+		chars := r.URL.Path[len("/wordfinder/"):]
 		nonAlpha := regexp.MustCompile(`[^a-z]`)
-		letters = string(nonAlpha.ReplaceAll([]byte(letters), []byte("")))
+		chars = string(nonAlpha.ReplaceAll([]byte(chars), []byte("")))
+		if len(chars) < 1 {
+			w.WriteHeader(400)
+			return
+		}
+		if len(chars) > saneInputLen {
+			w.WriteHeader(400)
+			return
+		}
 
-		words := findWords(letters, dict)
+		// Get the list of words made up of the input chars.
+		words := findWords(chars, dict)
+
+		// Return the list as JSON.
 		jwords, err := json.Marshal(words)
 		if err != nil {
 			fmt.Printf("Error: %s", err.Error())
