@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"io/ioutil"
+	"log"
 	"net/http"
 	"os"
 	"regexp"
@@ -23,6 +24,7 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 	http.HandleFunc("/wordfinder/", wordfinderHandler(dict))
+	log.Fatal(http.ListenAndServe(":9090", nil))
 }
 
 func wordfinderHandler(dict string) http.HandlerFunc {
