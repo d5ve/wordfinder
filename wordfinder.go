@@ -58,6 +58,7 @@ func wordfinderHandler(dict string) http.HandlerFunc {
 	}
 }
 
+// This currently takes about 0.06 seconds, which is slower than perl.
 func FindWords(chars string, dict string) []string {
 
 	// Track the frequency of each char in the input.
