@@ -72,12 +72,29 @@ func findWords(chars string, dict string) (words []string) {
 
 	// Find all words in the dictionary that can be made solely from the
 	// input chars. Also filter to matches no longer than the input chars.
-	// [ban] shouldn't match banana
-	var re = regexp.MustCompile(`\b([` + chars + `]{1,` + string(len(chars)) + `)\b`)
-	matches := re.FindAllStringSubmatch(dict, -1)
+	// [di] shouldn't match did
+	var re = regexp.MustCompile(fmt.Sprintf(`\b([%s]{1,%d})\b`, chars, len(chars)))
+	matches := re.FindAllString(dict, -1)
 
-	// Process each match further.
-	for _, match := range matches {
+	// Process each match further to check that the character frequency is
+	// no larger than that of the input.
+match:
+	for _, word := range matches {
+		mfreq := make(map[rune]int)
+		for _, c := range word {
+			mf, exists := mfreq[c]
+			if exists {
+				f, exists := freq[c]
+				if exists && mf+1 > f {
+					continue match
+				}
+				mfreq[c] = mf + 1
+			} else {
+				mfreq[c] = 1
+
+			}
+		}
+		words = append(words, word)
 	}
 	return words
 
