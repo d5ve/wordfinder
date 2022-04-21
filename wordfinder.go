@@ -56,7 +56,29 @@ func wordfinderHandler(dict string) http.HandlerFunc {
 	}
 }
 
-func findWords(input string, dict string) (words []string) {
+func findWords(chars string, dict string) (words []string) {
+
+	// Track the frequency of each char in the input.
+	freq := make(map[rune]int)
+	for _, c := range chars {
+		f, exists := freq[c]
+		if exists {
+			freq[c] = f + 1
+		} else {
+			freq[c] = 1
+
+		}
+	}
+
+	// Find all words in the dictionary that can be made solely from the
+	// input chars. Also filter to matches no longer than the input chars.
+	// [ban] shouldn't match banana
+	var re = regexp.MustCompile(`\b([` + chars + `]{1,` + string(len(chars)) + `)\b`)
+	matches := re.FindAllStringSubmatch(dict, -1)
+
+	// Process each match further.
+	for _, match := range matches {
+	}
 	return words
 
 }
