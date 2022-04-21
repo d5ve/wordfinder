@@ -14,7 +14,7 @@ import (
 var saneInputLen = 26
 
 func main() {
-	words := loadWords()
+	words := LoadWords()
 	//fmt.Println(words)
 	dict := strings.Join(words, " ")
 	// fmt.Println(dict)
@@ -41,7 +41,7 @@ func wordfinderHandler(dict string) http.HandlerFunc {
 		}
 
 		// Get the list of words made up of the input chars.
-		words := findWords(chars, dict)
+		words := FindWords(chars, dict)
 
 		// Return the list as JSON.
 		jwords, err := json.Marshal(words)
@@ -56,7 +56,7 @@ func wordfinderHandler(dict string) http.HandlerFunc {
 	}
 }
 
-func findWords(chars string, dict string) (words []string) {
+func FindWords(chars string, dict string) (words []string) {
 
 	// Track the frequency of each char in the input.
 	freq := make(map[rune]int)
@@ -80,17 +80,17 @@ func findWords(chars string, dict string) (words []string) {
 	// no larger than that of the input.
 match:
 	for _, word := range matches {
-		mfreq := make(map[rune]int)
+		wfreq := make(map[rune]int)
 		for _, c := range word {
-			mf, exists := mfreq[c]
+			wf, exists := wfreq[c]
 			if exists {
 				f, exists := freq[c]
-				if exists && mf+1 > f {
+				if exists && wf+1 > f {
 					continue match
 				}
-				mfreq[c] = mf + 1
+				wfreq[c] = wf + 1
 			} else {
-				mfreq[c] = 1
+				wfreq[c] = 1
 
 			}
 		}
@@ -100,7 +100,7 @@ match:
 
 }
 
-func loadWords() []string {
+func LoadWords() []string {
 	bytes, err := ioutil.ReadFile("/usr/share/dict/words")
 	if err != nil {
 		fmt.Fprintf(os.Stderr, "error: %v\n", err)
