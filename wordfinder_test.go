@@ -1,7 +1,6 @@
 package main
 
 import (
-	"fmt"
 	"reflect"
 	"strings"
 	"testing"
@@ -33,7 +32,6 @@ func TestFindWords(t *testing.T) {
 	}
 
 	for _, tt := range wordsTests {
-		fmt.Println(len(tt.expected))
 		t.Run(tt.input, func(t *testing.T) {
 			got := FindWords(tt.input, dict)
 			if !reflect.DeepEqual(got, tt.expected) {
