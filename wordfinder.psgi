@@ -26,7 +26,7 @@ same terms as perl itself.
 
 use Dancer2 appname => 'wordfinder';
 
-our $VERSION = v0.4;
+our $VERSION = v0.5;
 
 # load_words() hits disk.
 my @WORDS             = load_words();
@@ -34,12 +34,13 @@ my $sane_input_length = 26; # What is a sane maximum here ??
 
 # Routes
 get '/ping'               => sub { 'ok' };
-get '/wordfinder/:input'  => sub { &wordfinder };   # Loop through the wordlist checking each word.
-get '/wordfinder4/:input' => sub { &wordfinder4 };  # Treat the wordlist as a single string and run a single regex. Faster. More mem??
+get '/wordfinder/:input'  => sub { &wordfinder4 };
 any qr{.*}                => sub { status 404; return "Not Found"; };
 
 #
-# wordfinder() finds all words built from a list of letters.
+# wordfinder2() finds all words built from a list of letters.
+#
+# REPLACED BY THE FASTER wordfinder4()
 #
 # The words can only contain letters from the list.
 # Not all letters need to be used.
@@ -57,7 +58,7 @@ any qr{.*}                => sub { status 404; return "Not Found"; };
 # match on any words short enough to be fully matched by the input.
 # Then each match is looped through per character to check that it uses a
 # correct number of each character.
-sub wordfinder {
+sub wordfinder2 {
     my $input = lc route_parameters->get('input');
     $input =~ s{[^a-z]}{}gxms;    # Ignore anything outside of a-z. TODO: return error?
     my $input_len = length $input;
@@ -105,9 +106,9 @@ sub wordfinder {
 #
 # New algorithm that puts the whole dictionary into a single string, then runs
 # a single pattern match along the whole thing. This takes half the time per
-# search as the original loop-style algorithm in wordfinder(), at the expense of
+# search as the original loop-style algorithm in wordfinder2(), at the expense of
 # RAM.
-# See wordfinder() for more docs.
+# See wordfinder2() for more docs.
 my $single_line_words;
 sub wordfinder4 {
     my $input = lc route_parameters->get('input');

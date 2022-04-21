@@ -1,4 +1,4 @@
-# WORDFINDER API v0.4
+# WORDFINDER API v0.5
 
 Simple perl/dancer2 JSON API to find words matching a pattern.
 
@@ -37,17 +37,12 @@ OK
 
 $ curl http://localhost:8080/wordfinder/dgo
 [ "do", "dog", "go", "god", "o" ]
-
-# New, faster algorithm.
-$ curl http://localhost:8080/wordfinder4/dgo
-[ "do", "dog", "go", "god", "o" ]
 ```
 
 ## TODO
 
 - Make app into a package for ease of testing.
 - Tests.
-- Better algorithms. Too many nested loops currently. Use benchmarking to compare different ideas.
 - Caching. Normalise the input letters and have a small round-robin memory cache.
 - Better error handling.
 
