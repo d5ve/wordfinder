@@ -24,7 +24,10 @@ func main() {
 		w.WriteHeader(http.StatusOK)
 	})
 	http.HandleFunc("/wordfinder/", wordfinderHandler(dict))
-	log.Fatal(http.ListenAndServe(":9090", nil))
+
+	port := ":9090"
+	log.Println("Listening on " + port)
+	log.Fatal(http.ListenAndServe(port, nil))
 }
 
 func wordfinderHandler(dict string) http.HandlerFunc {
@@ -104,6 +107,99 @@ match:
 
 }
 
+func FindWords2(chars string, dict string) []string {
+
+	// Track the frequency of each char in the input.
+	freq := make(map[rune]int)
+	for _, c := range chars {
+		f, exists := freq[c]
+		if exists {
+			freq[c] = f + 1
+		} else {
+			freq[c] = 1
+
+		}
+	}
+
+	// Find all words in the dictionary that can be made solely from the
+	// input chars.
+	var re = regexp.MustCompile(fmt.Sprintf(`\b([%s]+)\b`, chars))
+	matches := re.FindAllString(dict, -1)
+
+	words := make([]string, 0)
+	// Process each match further to check that the character frequency is
+	// no larger than that of the input.
+match:
+	for _, word := range matches {
+		if len(word) > len(chars) {
+			continue match
+		}
+		wfreq := make(map[rune]int)
+		for _, c := range word {
+			wf, exists := wfreq[c]
+			if exists {
+				f, exists := freq[c]
+				if exists && wf+1 > f {
+					continue match
+				}
+				wfreq[c] = wf + 1
+			} else {
+				wfreq[c] = 1
+
+			}
+		}
+		words = append(words, word)
+	}
+	return words
+
+}
+
+func FindWords3(chars string, dict []string) []string {
+
+	// Track the frequency of each char in the input.
+	freq := make(map[rune]int)
+	for _, c := range chars {
+		f, exists := freq[c]
+		if exists {
+			freq[c] = f + 1
+		} else {
+			freq[c] = 1
+
+		}
+	}
+
+	// Find all words in the dictionary that can be made solely from the
+	// input chars.
+	var re = regexp.MustCompile(fmt.Sprintf(`\b([%s]+)\b`, chars))
+
+	words := make([]string, 0)
+words:
+	for _, word := range dict {
+		if len(word) > len(chars) {
+			continue words
+		}
+		if re.FindString(word) == "" {
+			continue words
+		}
+		wfreq := make(map[rune]int)
+		for _, c := range word {
+			wf, exists := wfreq[c]
+			if exists {
+				f, exists := freq[c]
+				if exists && wf+1 > f {
+					continue words
+				}
+				wfreq[c] = wf + 1
+			} else {
+				wfreq[c] = 1
+
+			}
+		}
+		words = append(words, word)
+	}
+	return words
+
+}
 func LoadWords() []string {
 	bytes, err := ioutil.ReadFile("/usr/share/dict/words")
 	if err != nil {

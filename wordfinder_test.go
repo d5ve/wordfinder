@@ -7,9 +7,10 @@ import (
 )
 
 var dict string
+var words []string
 
 func TestLoadWords(t *testing.T) {
-	words := LoadWords()
+	words = LoadWords()
 	if len(words) < 1000 {
 		t.Fatal("Less than 1000 words loaded from dictionary")
 	}
@@ -35,11 +36,42 @@ func TestFindWords(t *testing.T) {
 		t.Run(tt.input, func(t *testing.T) {
 			got := FindWords(tt.input, dict)
 			if !reflect.DeepEqual(got, tt.expected) {
-				t.Errorf("'%s' got %s want %s", tt.input, got, tt.expected)
+				t.Errorf("FindWords('%s') got %s want %s", tt.input, got, tt.expected)
+			}
+			got = FindWords2(tt.input, dict)
+			if !reflect.DeepEqual(got, tt.expected) {
+				t.Errorf("FindWords2('%s') got %s want %s", tt.input, got, tt.expected)
+			}
+			got = FindWords3(tt.input, words)
+			if !reflect.DeepEqual(got, tt.expected) {
+				t.Errorf("FindWords3('%s') got %s want %s", tt.input, got, tt.expected)
 			}
 		})
 	}
 
+}
+
+var got []string
+
+func BenchmarkFindWords(b *testing.B) {
+	words := LoadWords()
+	dict := strings.Join(words, " ")
+	for n := 0; n < b.N; n++ {
+		got = FindWords("eariotnslc", dict)
+	}
+}
+func BenchmarkFindWords2(b *testing.B) {
+	words := LoadWords()
+	dict := strings.Join(words, " ")
+	for n := 0; n < b.N; n++ {
+		got = FindWords2("eariotnslc", dict)
+	}
+}
+func BenchmarkFindWords3(b *testing.B) {
+	words := LoadWords()
+	for n := 0; n < b.N; n++ {
+		got = FindWords3("eariotnslc", words)
+	}
 }
 
 // Results on my macos laptop for the ten most common letters, eariotnslc -
