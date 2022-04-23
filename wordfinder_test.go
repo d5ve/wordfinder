@@ -46,6 +46,10 @@ func TestFindWords(t *testing.T) {
 			if !reflect.DeepEqual(got, tt.expected) {
 				t.Errorf("FindWords3('%s') got %s want %s", tt.input, got, tt.expected)
 			}
+			got = FindWords4(tt.input, dict)
+			if !reflect.DeepEqual(got, tt.expected) {
+				t.Errorf("FindWords4('%s') got %s want %s", tt.input, got, tt.expected)
+			}
 		})
 	}
 
@@ -71,6 +75,13 @@ func BenchmarkFindWords3(b *testing.B) {
 	words := LoadWords()
 	for n := 0; n < b.N; n++ {
 		got = FindWords3("eariotnslc", words)
+	}
+}
+func BenchmarkFindWords4(b *testing.B) {
+	words := LoadWords()
+	dict := strings.Join(words, " ")
+	for n := 0; n < b.N; n++ {
+		got = FindWords4("eariotnslc", dict)
 	}
 }
 

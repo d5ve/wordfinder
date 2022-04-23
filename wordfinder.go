@@ -107,6 +107,8 @@ match:
 
 }
 
+// Like FindWords() but move length test from regex into verification loop.
+// RESULT: Not much faster.
 func FindWords2(chars string, dict string) []string {
 
 	// Track the frequency of each char in the input.
@@ -154,6 +156,8 @@ match:
 
 }
 
+// Loop through each word in dict and apply simple regex to each.
+// RESULT: Much slower.
 func FindWords3(chars string, dict []string) []string {
 
 	// Track the frequency of each char in the input.
@@ -200,6 +204,53 @@ words:
 	return words
 
 }
+
+// Like FindWords() but call function to build freq sets.
+// RESULT: Slightly slower.
+func FindWords4(chars string, dict string) []string {
+
+	freq := charFreq(chars)
+
+	// Find all words in the dictionary that can be made solely from the
+	// input chars. Also filter to matches no longer than the input chars.
+	// [di] shouldn't match did
+	var re = regexp.MustCompile(fmt.Sprintf(`\b([%s]{1,%d})\b`, chars, len(chars)))
+	matches := re.FindAllString(dict, -1)
+
+	words := make([]string, 0)
+	// Process each match further to check that the character frequency is
+	// no larger than that of the input.
+match:
+	for _, word := range matches {
+		wfreq := charFreq(word)
+		for c, f := range freq {
+			wf, exists := wfreq[c]
+			if exists {
+				if wf > f {
+					continue match
+				}
+			}
+		}
+		words = append(words, word)
+	}
+	return words
+
+}
+
+func charFreq(chars string) map[rune]int {
+	freq := make(map[rune]int)
+	for _, c := range chars {
+		f, exists := freq[c]
+		if exists {
+			freq[c] = f + 1
+		} else {
+			freq[c] = 1
+
+		}
+	}
+	return freq
+}
+
 func LoadWords() []string {
 	bytes, err := ioutil.ReadFile("/usr/share/dict/words")
 	if err != nil {
